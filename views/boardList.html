@@ -15,7 +15,7 @@
                 <span id="loginUser"></span>님이 로그인하셨습니다
                 <input type="button" value="회원정보수정" onClick="location.href='/member/updateForm'"/>
                 <input type="button" value="로그아웃" onClick="location.href='/member/logout'"/>
-                <input type="button" id="deleteMember" value="회원탈퇴" />
+                <input type="button" id="deleteMember" value="회원탈퇴" onClick="deleteMember()"/>
             </div>
             <div class="writebutton">
                 <input type="button" value="게시글 등록" onClick="location.href='/board/boardWriteForm'" />
@@ -98,6 +98,23 @@
                 });
 
             }catch(err){console.error(err);}
+        }
+
+        async function deleteMember(){
+            let ans = confirm('회원 정보가 모두 삭제됩니다. ');
+            if( ans ){
+                let pwd = prompt('회원의 로그인 암호를 입력하세요');
+                try{
+                    const result = await axios.delete('/member/deleteMember/' + pwd);
+                    if( result.data == 'ok'){
+                        alert('회원탈퇴가 완료되었습니다');
+                        location.href='/';
+                    }else{
+                        alert('로그인 암호가 맞지 않습니다');
+                    }
+
+                }catch(err){ console.error(err); }
+            }
         }
     </script>
 </body>

@@ -86,8 +86,7 @@ router.post('/join', async (req, res)=>{
     try{
         const connection = await getConnection();
         const [ result ] = await connection.query(sql, [userid, pwd, name, email, phone]);
-        console.log('result ', result);
-        console.log('fields ', fields);
+        // console.log('result ', result);
         res.json({msg:'회원가입이 완료되었습니다. 로그인하세요'});
     }catch(err){
         console.error(err);
@@ -110,6 +109,25 @@ router.post('/update' , async (req, res)=>{
     }catch(err){
         next(err);
     }
+});
+
+router.delete('/deleteMember/:pwd', async (req, res, next)=>{
+    const userid = req.session[ req.cookies.session ];
+    let sql = 'select * from member where userid=?';
+    try{
+        const connection = await getConnection();
+        const [rows, fields ] = await connection.query(sql, [userid]);
+        if( rows[0].pwd == req.params.pwd ){
+            sql = 'delete from member where userid=?';
+            const [result ] = await connection.query(sql, [userid]);
+            delete req.session[req.cookies.session]; 
+            res.clearCookie('session', req.cookies.session ,{ httpOnly : true,   path : '/'  });
+            res.send('ok');
+        }else{
+            res.send('not-ok');
+        }
+
+    }catch(err){ next(err); }
 });
 
 module.exports = router;

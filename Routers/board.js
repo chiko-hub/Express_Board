@@ -97,4 +97,83 @@ router.post('/writeBoard', async (req, res, next)=>{
     }catch(err){next(err);}
 });
 
+
+router.get('/getReplys', async (req, res, next)=>{
+    const boardnum = req.session.boardnum;
+    try{
+        const connection = await getConnection();
+        const sql = "select * from reply where boardnum=? order by replynum desc";
+        const [rows, fields] = await connection.query(sql, [boardnum]);
+        res.send( rows );
+    }catch(err){ next(err);  }
+});
+
+router.post('/insertReply', async (req, res, next)=>{
+    const userid = req.session[ req.cookies.session ];
+    const { boardnum, content } = req.body;
+    console.log(boardnum, ' ', content );
+    try{
+        const connection = await getConnection();
+        const sql = "insert into reply( userid, boardnum, content) values(? ,? , ?)";
+        const [result] = await connection.query(sql, [userid, boardnum, content]);
+        res.send('ok');
+    }catch(err){ next(err ); }
+});
+
+router.delete("/deleteReply/:replynum", async (req, res, next)=>{
+    try{
+        const connection = await getConnection();
+        const sql = "delete from reply where replynum=?";
+        const [result] = await connection.query(sql, [req.params.replynum]);
+        res.send('ok');
+    }catch(err){next(err);}
+});
+
+
+router.get('/updateBoardForm' , (req, res)=>{
+    res.sendFile( path.join(__dirname, '/..', '/views/boardUdateForm.html') );
+});
+
+
+router.post('/updateBoard', async (req, res)=>{
+    const connection = await getConnection();
+    const { title, content, image, savefilename }=req.body;
+    const sql = 'update board set title=?, content=?, image=?, savefilename=? where num=?';
+    try{
+        const [result, field] = await connection.query(sql, [title, content, image, savefilename, req.session.boardnum] );
+    }catch(err){
+        console.error(err);
+    }
+    res.send('ok');
+});
+
+router.get('/boardViewWithoutCount', async (req, res)=>{
+    res.sendFile( path.join(__dirname, '/..', '/views/boardView.html') );
+});
+
+// router.get('/deleteBoard', async (req, res, next)=>{
+//     try{
+//         const connection = await getConnection();
+//         const sql = 'delete from board where num=?';
+//         const [result] = await connection.query(sql, [req.session.boardnum]);
+//         res.redirect('/board/boardList');
+//     }catch(err){ next(err); }
+// });
+
+router.delete('/deleteBoard/:pass', async(req, res, next)=>{
+    // 게시물을 조회해서 전송된 pass 와  게시물의  pass 비교하고, 그 결과에 맞는 처리를 해주세요
+    let sql = 'select * from board where num=?';
+    try{
+        const connection = await getConnection();
+        const [rows, field] = await connection.query(sql, [req.session.boardnum]);
+        if( rows[0].pass == req.params.pass ){
+            sql = 'delete from board where num=?';
+            const [result] = await connection.query(sql, [req.session.boardnum]);
+            res.send('ok');
+        }else{
+            res.send('not_ok');
+        }
+    }catch(err){ next(err); }
+});
+
 module.exports = router;
