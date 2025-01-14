@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>boardWriteForm.html</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="main_container">
+        <h2>게시글 등록</h2>
+        <div class="board">
+            <form class="insertBoard" method="post" name="insertBoard" id="insertForm" enctype="multipart/form-data">
+                <div class="field">
+                    <label>작성자</label>
+                    <input type="text" name="userid" id="userid" readonly/>
+                </div>
+                <div class="field">
+                    <label>비밀번호</label><input style="flex:2" type="password" name="pass" id="pass"/>
+                    <div  style="flex:2; margin-left:20px;">게시물 수정 삭제시 필요합니다.</div>
+                </div>
+                <div class="field">
+                    <label>이메일</label>
+                    <input type="text" name="email" id="email" readonly/>
+                </div>
+                <div class="field">
+                    <label>제목</label><input type="text" name="title" id="title"/>
+                </div>
+                <div class="field">
+                    <label>내용</label><textarea name="content"rows="10" cols="100" id="content"></textarea>
+                </div>
+                <div class="field">
+                    <label>이미지</label>
+                    <input type="file" name="image"  id="image" />
+                </div>
+                <div class="field">
+                    <label>이미지 미리보기</label>
+                    <div style="flex:4">
+                        <img src=""  id="previewimg" width="150" style="display:none" />
+                        <input type="hidden" id="savefilename" name="savefilename" >
+                        <input type="hidden" id="img" name="img" >
+                        <div id="imagename"></div>
+                        <div id="savename"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <input type="submit" value="작성완료" />
+                    <input type="button" value="메인으로" onClick="location.href='/board/boardList'" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        getLoginUser();
+
+        async function getLoginUser(){
+            try{
+                const result = await axios.get('/getLoginUser');
+                console.log( result);
+                loginUser = result.data.loginUser;
+                if( loginUser == 'none') {
+                    alert('로그인이 필요한 서비스입니다.');
+                    location.href='/';
+                }else{
+                    document.getElementById('userid').value = loginUser.userid;
+                    document.getElementById('email').value = loginUser.email;
+                }
+            }catch(err){ console.error(err); }
+        }
+
+
+        document.getElementById('image').addEventListener('change', async(e)=>{
+            const formData = new FormData();
+            formData.append('image', e.target.files[0]);
+            try{
+                const result = await axios.post('/board/imageup', formData);
+                const res = result.data;
+
+                document.getElementById('previewimg').src = '/img/' + res.savefilename;
+                document.getElementById('previewimg').style.display = 'inline';
+                
+                document.getElementById('img').value = res.image;
+                document.getElementById('savefilename').value = res.savefilename;
+
+                document.getElementById('imagename').innerHTML = res.image;
+                document.getElementById('savename').innerHTML = res.savefilename;
+
+            }catch(err){ console.error(err); }
+        });
+
+
+        document.getElementById('insertForm').addEventListener('submit', async (e)=>{
+            // 이미지를 제외하고   image, savefilename 포함하여
+            // 게시글 등록후  /board/boardList 로 이동합니다 
+            e.preventDefault();
+            const userid = e.target.userid.value;
+            const pass = e.target.pass.value;
+            const email = e.target.email.value;
+            const title = e.target.title.value;
+            const content = e.target.content.value;
+            const image = e.target.img.value; // 파일 업로드후 리턴받은 파일이 저장된 히든 테그
+            const savefilename = e.target.savefilename.value;
+            
+            if( !pass){ return alert('비밀번호는 수정 삭제시 필요합니다');}
+            if( !title){ return alert('제목을 입력하세요');}
+            if( !content){ return alert('내용을 입력하세요');}
+
+            try{
+                const result = await axios.post('/board/writeBoard', {userid, pass, email, title, content, image, savefilename} );
+                location.href = '/board/boardList';
+            }catch(err){ console.error( err); }
+
+        });
+    </script>
+</body>
+</html>

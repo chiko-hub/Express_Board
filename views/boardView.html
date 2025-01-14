@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>boardView.html</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="main_container">
+        <h2>게시글 상세 보기</h2>
+        <div class="board">
+            <div class="field">
+                <div class="label">작성자</div><div class="text" id="writer"></div>
+            </div>
+            <div class="field">
+                <div class="label">이메일</div><div class="text" id="email"></div>
+            </div>
+            <div class="field">
+                <div class="label">조회수</div><div class="text" id="readcount"></div>
+            </div>
+            <div class="field">
+                <div class="label">작성일</div><div class="text" id="writedate"></div>
+            </div>
+            <div class="field">
+                <div class="label">제목</div><div class="text"  id="title"></div>
+            </div>
+            <div class="field" >
+                <div class="label" >내용</div>
+                <div class="text" style="font-size:130%;"  id="content"></div>
+            </div>
+            <div class="field" >
+                <div class="label" style="flex:0.5;">이미지</div>
+                <div class="text" style="flex:2;"  id="image"></div>
+            </div>
+            <div class="login-button">
+                <input type="button" class="btn-login" value="수정" onClick="location.href='/board/updateBoardForm'"/>
+                <input type="button" class="btn-login" value="삭제" />
+                <input type="button" class="btn-login" value="목록" onClick="location.href='/board/boardList'"/>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        getBoard();
+
+        async function getBoard(){
+            // 세션에 저장된 게시물 번호로 게시물을 조회하고, 입력란의  id 값을 이용해서 내용을 표시하세요
+            try{
+                const result = await axios.get('/board/getBoard');
+                const board = result.data;
+                document.getElementById('writer').innerHTML = board.userid;
+                document.getElementById('email').innerHTML = board.email;
+                document.getElementById('readcount').innerHTML = board.readcount;
+                document.getElementById('writedate').innerHTML = board.writedate.substring(0, 10);
+                document.getElementById('title').innerHTML = board.title;
+                document.getElementById('content').innerHTML = "<pre>" + board.content + "</pre>";
+                //document.getElementById('boardnum').value = board.num;
+                console.log(board.image);
+                if( board.image ){
+                    document.getElementById('image').innerHTML = "<img src='/img/" + board.savefilename + "' width='200' />"
+                }
+            }catch(err){ console.log(err);  }
+        }
+
+    </script>
+</body>
+</html>

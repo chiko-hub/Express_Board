@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>updateMemberForm.html</title>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+</head>
+<body>
+    <form name="update" id="update-form" class="login-form" method="post">
+        <h2>Update Member</h2>
+        <div class="field"><label>User ID</label><input type="text" id="userid" readonly /></div>
+        <div class="field"><label>Password</label><input type="password" id="pwd"></div>
+        <div class="field"><label>Retype Pw</label><input type="password" id="pwd_check"></div>
+        <div class="field"><label>name</label><input type="text" id="name"></div>
+        <div class="field"><label>Email</label><input type="text" id="email"></div>
+        <div class="field"><label>Phone</label><input type="text" id="phone"></div>
+        <div class="login-button">
+            <input type="submit" class="btn-login" value="Update" />
+            <input type="button" class="btn-login" value="Back" onClick="location.href='/board/boardList'"/>
+        </div>
+    </form>
+    <script type="text/javascript">
+        getLoginUser();
+
+        async function getLoginUser(){
+            try{
+                const result = await axios.get('/getLoginUser');
+                // console.log( result);
+                const loginUser = result.data.loginUser;
+                if( loginUser == 'none') {
+                    alert('로그인이 필요한 서비스입니다.');
+                    location.href='/';
+                }else{
+                    document.getElementById("userid").value = loginUser.userid;
+                    document.getElementById("name").value = loginUser.name;
+                    document.getElementById("email").value = loginUser.email;
+                    document.getElementById("phone").value = loginUser.phone;
+                }
+            }catch(err){ console.error(err); }
+        }
+
+        document.getElementById('update-form').addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            // 입력한 내용을을 바탕으로 회원정보 수정을 완성하세요.
+            // 회원 수정이 완료되면 board/boardList 로 이동합니다
+            const userid = e.target.userid.value;
+            const pwd = e.target.pwd.value;
+            const pwd_chk = e.target.pwd_check.value;
+            const name = e.target.name.value;
+            const email = e.target.email.value;
+            const phone = e.target.phone.value;
+            if( !pwd ){ return alert('비밀번호를 입력하세요'); }
+            if( !name ){ return alert('이름을 입력하세요'); }
+            if( !email ){ return alert('이메일을 입력하세요'); }
+            if( !phone ){ return alert('전화번호를 입력하세요'); }
+            if( pwd != pwd_chk ){ return alert('비밀번호 확인이 일치하지 않습니다'); }
+            try{
+                await axios.post('/member/update', {userid, pwd, name, email, phone});
+                location.href='/board/boardList';
+            }catch(err){ console.error(err);}
+        });
+    </script>
+</body>
+</html>

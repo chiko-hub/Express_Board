@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>boardList.html</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="main_container">
+        <h2>게시글 리스트</h2>
+        <div class="logininfo">
+            <div class="login">
+                <span id="loginUser"></span>님이 로그인하셨습니다
+                <input type="button" value="회원정보수정" onClick="location.href='/member/updateForm'"/>
+                <input type="button" value="로그아웃" onClick="location.href='/member/logout'"/>
+                <input type="button" id="deleteMember" value="회원탈퇴" />
+            </div>
+            <div class="writebutton">
+                <input type="button" value="게시글 등록" onClick="location.href='/board/boardWriteForm'" />
+            </div>
+        </div>
+
+        <div class="title_row">
+            <div class="title_col">번호</div><div class="title_col">제목</div><div class="title_col" >작성자</div><div class="title_col">작성일</div><div class="title_col">조회수</div>
+        </div>
+        <div class="board" id="boardlist">
+            <!-- 게시물이 표시될 곳 -->
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let loginUser;
+        getLoginUser();
+        getBoardList();
+
+        async function  getLoginUser(){
+            try{
+                const result = await axios.get('/getLoginUser');
+                console.log( result);
+                loginUser = result.data.loginUser;
+                if( loginUser == 'none') {
+                    alert('로그인이 필요한 서비스입니다.');
+                    location.href='/';
+                }else{
+                    document.getElementById('loginUser').innerHTML = loginUser.userid + '(' + loginUser.name + ')';
+                }
+            }catch(err){ console.error(err); }
+        }
+
+        async function getBoardList(){
+            try{
+                const result = await axios.get('/board/getBoards');
+                const boards = result.data;
+                //console.log('result : ', result);
+                //console.log('boards : ', boards);
+
+                //게시물이 나올 태그내부를 비웁니다
+                let boardList = document.querySelector('#boardlist');
+                boardList.innerHTML = '';
+
+                // boards 배열의 각 요소들이  board변수에 전달되면 요소의 갯수만큼 익명함수가 실행됩니다
+                boards.map((board)=>{
+                    let row = document.createElement('div');
+                    row.className = 'row';
+
+                    let col = document.createElement('div');
+                    col.className = 'col';
+                    col.textContent = board.num;
+                    row.appendChild( col );
+
+                    col = document.createElement('div');
+                    col.className = 'col';
+                    col.textContent = board.title;
+                    row.appendChild( col );
+
+                    col.addEventListener('click', (e)=>{
+                        location.href=`/board/boardView/${board.num}`;
+                    });
+
+                    col = document.createElement('div');
+                    col.className = 'col';
+                    col.textContent = board.userid;
+                    row.appendChild( col );
+
+                    col = document.createElement('div');
+                    col.className = 'col';
+                    col.textContent = board.writedate.substring(0, 10);
+                    row.appendChild( col );
+
+                    col = document.createElement('div');
+                    col.className = 'col';
+                    col.textContent = board.readcount;
+                    row.appendChild( col );
+
+                    boardlist.appendChild(row);
+                });
+
+            }catch(err){console.error(err);}
+        }
+    </script>
+</body>
+</html>
